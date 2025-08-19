@@ -1,14 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTaskContext } from "../context/TaskContext";
 import { Link } from "react-router";
 import { taskService } from "../api/taskService";
 
 function TaskList() {
   const { state, dispatch } = useTaskContext();
+  const [ isChecked, setIsChecked] = useState(false);
   const { tasks, loading, error } = state;
 
   useEffect(() => {
-    fetchTasks();
+      fetchTasks();
   }, []);
 
   const fetchTasks = async () => {
@@ -17,7 +18,10 @@ function TaskList() {
       const response = await taskService.getAllTasks();
       dispatch({ type: "SET_TASKS", payload: response.data });
     } catch (err) {
-      dispatch({ type: "SET_ERROR", payload: "From TaskList: Failed to fetch tasks" });
+      dispatch({
+        type: "SET_ERROR",
+        payload: "From TaskList: Failed to fetch tasks",
+      });
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
@@ -44,11 +48,37 @@ function TaskList() {
     }
   };
 
+  const fetchAllCompletedTasks = async (iscompleted) => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    try {
+      const response = await taskService.getCompletedTasks(iscompleted);
+      dispatch({ type: "SET_TASKS", payload: response.data });
+    } catch (err) {
+      dispatch({
+        type: "SET_ERROR",
+        payload: "From TaskList: Failed to fetch tasks",
+      });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
   if (loading) return <div>Loading tasks...</div>;
   if (error) return <div>Error: {error}</div>;
-  
+
   return (
     <div style={{ padding: "20px" }}>
+      <label>
+        <input
+          type="checkbox"
+          checked={isChecked? true: false}
+          onChange={(e) => {
+            fetchAllCompletedTasks(e.target.checked);
+            setIsChecked(!isChecked);
+          }}
+        />
+        Show Completed Tasks Only
+      </label>
       <h2>Task List ({tasks.length} tasks)</h2>
       {tasks.length === 0 ? (
         <div>
@@ -70,7 +100,7 @@ function TaskList() {
               <h3
                 style={{
                   textDecoration: task.completed ? "line-through" : "none",
-                  color: "black"
+                  color: "black",
                 }}
               >
                 {task.title}
@@ -78,7 +108,9 @@ function TaskList() {
               <p style={{ color: task.completed ? "#6c757d" : "black" }}>
                 {task.description}
               </p>
-              <p style={{ color: "black" }}>Status: {task.completed ? "✅ Completed" : "⏳ Pending"}</p>
+              <p style={{ color: "black" }}>
+                Status: {task.completed ? "✅ Completed" : "⏳ Pending"}
+              </p>
               <div style={{ marginTop: "10px" }}>
                 <button
                   onClick={() => toggleComplete(task)}

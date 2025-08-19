@@ -17,3 +17,7 @@ export const updateTask = async (id, updatedTask) => {
 export const deleteTask = async (id) => {
   await axios.delete(`/api/tasks/${id}`);
 };
+
+export const getCompletedTasks = async (iscompleted) => {
+  await axios.get(`/api/tasks/search?searh=${iscompleted}`);
+};
