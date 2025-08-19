@@ -8,6 +8,7 @@ import com.example.task_manager.repository.TaskRepository;
 
 import java.util.List;
 
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/tasks")
@@ -34,5 +35,12 @@ public class TaskController {
     @DeleteMapping("/{id}")
     public void deleteTask(@PathVariable Long id) {
         taskRepository.deleteById(id);
+    }
+
+    @GetMapping("/search")
+    public List<Task> getCompletedTasks(
+        @RequestParam(value="iscompleted", required = false, defaultValue = "true") boolean iscompleted, 
+        @RequestParam(value="search", required = false) String search) {
+        return taskRepository.findTasksByFilter(search, iscompleted);
     }
 }
